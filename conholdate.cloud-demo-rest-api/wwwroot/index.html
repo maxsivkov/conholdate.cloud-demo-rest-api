@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Barcode Sample API Client</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+    <style>
+        #log {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 20%;
+        }
+
+        #jwt-token {
+            width: 100em;
+            height: 5em;
+        }
+        .passitem {
+            margin: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        var config = {}
+
+        $(document).ready(function () {
+            // Retrieve configuration from backend
+            if (!get_config())
+                $.ajax({
+                    url: "config.json",
+                    success: function (data) {
+                        config = JSON.parse(data);
+                        $("#appsid").val(config.AppSid);
+                        $("#appkey").val(config.AppKey);
+
+                        $("#TicketNo").val(config.TicketNo);
+                        $("#FlightNo").val(config.FlightNo);
+                        $("#Name").val(config.Name);
+                        $("#FlightDate").val(config.FlightDate);
+                        $("#From").val(config.From);
+                        $("#To").val(config.To);
+                        $("#Class").val(config.Class);
+                        $("#Seat").val(config.Seat);
+                        $("#Age").val(config.Age);
+                        $("#Phone").val(config.Phone);
+                        $("#Gender").val(config.Gender);
+
+                        console.log(config);
+                    }
+                });
+        });
+
+        function log() {
+            var s = '';
+            for (var i = 0; i < arguments.length; i++) {
+                s += arguments[i] + ' ';
+            }
+            $("#log").val($("#log").val() + "\r\n" + s);
+        }
+
+        function get_config() {
+            var t = sessionStorage.getItem('config');
+            return t == null || t == 'null' ? null : JSON.parse(t);
+        }
+
+
+        function get_jwt() {
+            $.ajax({
+                url: "https://ac-proxy.k8s.saltov.dynabic.com/connect/token",
+                //url: "http://localhost:5000/connect/token",
+                type: "POST",
+                headers: {
+                    accept: 'application/json',
+                },
+                data: {
+                    'grant_type': 'client_credentials',
+                    'client_id': $("#appsid").val(),
+                    'client_secret': $("#appkey").val(),
+                },
+                success: function (data) {
+                    console.log("Received response ", data)
+
+                    $("#jwt-token").text(data.access_token);
+                    log('received new token', $("#jwt-token").text())
+                },
+                error: function (request, status, error) {
+                    log('GetToken response error ', request.status, error);
+                },
+            });
+        }
+
+        function test_html() {
+            $("#img_container").remove();
+            $.ajax({
+                url: `/api/sample/testhtml`,
+                type: "GET",
+                data: {
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + $("#jwt-token").text()
+                },
+                success: function (data) {
+                    //console.log("Received response ", data)
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(data);
+                    link.download = "ticket.pdf";
+                    link.innerHTML = "Get test_html.pdf";
+                    //link.click();
+                    document.getElementById('container').appendChild(link);
+                    document.getElementById('container').appendChild(document.createElement('br'));
+                },
+                error: function (request, status, error) {
+                    log('testhtml response error ', request.status, error);
+                },
+            });
+        }
+
+
+        function generate_ticket() {
+            $("#img_container").remove();
+            $.ajax({
+                url: `/api/sample/ticket`,
+                type: "GET",
+                data: {
+                    'TicketNo': $("#TicketNo").val(),
+                    'FlightNo': $("#FlightNo").val(),
+                    'FlightDate': $("#FlightDate").val(),
+                    'From': $("#From").val(),
+                    'To': $("#To").val(),
+                    'Class': $("#Class").val(),
+                    'Seat': $("#Seat").val(),
+                    'Name': $("#Name").val(),
+                    'Age': $("#Age").val(),
+                    'Phone': $("#Phone").val(),
+                    'Gender': $("#Gender").val(),
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + $("#jwt-token").text()
+                },
+                success: function (data) {
+                    //console.log("Received response ", data)
+                    var link = document.createElement('a');
+                    link.classList.add('passitem');
+                    link.href = window.URL.createObjectURL(data);
+                    link.download = `${$("#Name").val()}-${$("#TicketNo").val()}.pdf`;
+                    link.innerHTML = link.download;
+                    //link.click();
+                    document.getElementById('container').appendChild(link);
+                    var spacer = document.createElement('spacer');
+                    spacer.setAttribute('width', '50');
+                    spacer.setAttribute('type', 'horizontal');
+                    document.getElementById('container').appendChild(spacer);
+                    //document.getElementById('container').appendChild(document.createElement('br'));
+                },
+                error: function (request, status, error) {
+                    log('ticket response error ', request.status, error);
+                },
+            });
+        }
+
+    </script>
+
+    <h1> Barcode Sample API Client</h1>
+    <br />
+    <br />
+    AppSID : <input type="text" id="appsid" /><br />
+    AppKey : <input type="text" id="appkey" /><br />
+    <br />
+    <a href="#" id="get_jwt" onclick="get_jwt()">Request JWT token from api.aspose.cloud</a>
+    <br />
+    <br />
+    <h3> JWT Token:</h3>
+    <textarea id="jwt-token"></textarea>
+    <hr />
+    <h4>Fill the fields below and click Generate Ticket</h4>
+    <table>
+        <tr><td>Ticket Number</td><td><input type="text" id="TicketNo" /></td></tr>
+        <tr><td>Flight Number</td><td><input type="text" id="FlightNo" /></td></tr>
+        <tr><td>Passanger Name</td><td><input type="text" id="Name" /></td></tr>
+        <tr><td>Flight Date</td><td><input type="text" id="FlightDate" /></td></tr>
+        <tr><td>From</td><td><input type="text" id="From" /></td></tr>
+        <tr><td>To</td><td><input type="text" id="To" /></td></tr>
+        <tr><td>Class</td><td><input type="text" id="Class" /></td></tr>
+        <tr><td>Seat</td><td><input type="text" id="Seat" /></td></tr>
+        <tr><td>Age</td><td><input type="text" id="Age" /></td></tr>
+        <tr><td>Phone</td><td><input type="text" id="Phone" /></td></tr>
+        <tr><td>Gender</td><td><input type="text" id="Gender" /></td></tr>
+    </table>
+    <a href="#" id="generate_ticket" onclick="generate_ticket()">Generate Ticket</a>
+    <hr />
+
+    <a href="#" id="test_html" onclick="test_html()">test_html</a>
+    <br />
+    <br />
+    <h3> Tickets:</h3>
+    <div id="container">
+    </div>
+    <br />
+    <textarea id="log"></textarea>
+
+</body>
+</html >
