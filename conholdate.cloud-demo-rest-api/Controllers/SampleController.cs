@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Aspose.Pdf.Cloud.Sdk.Api;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
 
@@ -41,7 +40,7 @@ namespace conholdate.cloud_demo_rest_api.Controllers
             Match match = regexp.Match(token);
             if (match.Success)
                 bearerToken = match.Groups["token"].Value;
-            _barCodeApi = new BarCodeApi(token);
+            _barCodeApi = new BarCodeApi(bearerToken);
             _pdfApi = new PdfApi(bearerToken);
             _htmlApi = new HtmlApi(new Aspose.Html.Cloud.Sdk.Client.Authentication.JwtToken
             {

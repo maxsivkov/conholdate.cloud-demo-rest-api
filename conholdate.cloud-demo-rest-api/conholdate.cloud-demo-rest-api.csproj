@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Aspose.BarCode.ConholdateCloud.Sdk">
-      <HintPath>..\dep\netstandard2.0\Aspose.BarCode.ConholdateCloud.Sdk.dll</HintPath>
+    <Reference Include="Aspose.BarCode.Cloud.Sdk">
+      <HintPath>..\dep\netstandard2.0\Aspose.BarCode.Cloud.Sdk.dll</HintPath>
     </Reference>
   </ItemGroup>
 
